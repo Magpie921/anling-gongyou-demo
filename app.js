@@ -574,11 +574,29 @@ async function syncWeather(){
 function weatherModal(){openModal(`<form class="modal-body" id="weatherForm"><div class="modal-header"><span class="status-pill medium">环境参数</span><h2 id="modalTitle">明日天气</h2><p>可手动补录；同步天气会从 Open-Meteo 获取逐小时预报。当前来源：${esc(state.weather.source)}。</p><button type="button" class="icon-button close-modal" data-close-modal>${icon('x')}</button></div><div class="form-grid">${formField('全天最高气温','temp',state.weather.temp,'number',true)}${formField('午间最高气温','heatTemp',state.weather.heatTemp??state.weather.temp,'number',true)}${formField('最大阵风（m/s）','windGust',state.weather.windGust,'number',true)}${formField('预测降雨量（mm）','precipitation',state.weather.precipitation,'number',true)}${formField('天气提醒','condition',state.weather.condition,'text',true)}${formField('项目地点','location',state.weather.location,'text',true)}${formField('纬度','latitude',state.weather.latitude,'number',true)}${formField('经度','longitude',state.weather.longitude,'number',true)}</div><div class="modal-actions"><button type="button" class="button secondary" data-close-modal>取消</button><button class="button primary" type="submit">保存并重算</button></div></form>`);bindModalClose();$('#weatherForm').onsubmit=event=>{event.preventDefault();const data=Object.fromEntries(new FormData(event.currentTarget));state.weather={...state.weather,temp:Number(data.temp),heatTemp:Number(data.heatTemp),windGust:Number(data.windGust),precipitation:Number(data.precipitation),condition:data.condition.trim(),location:data.location.trim(),latitude:Number(data.latitude),longitude:Number(data.longitude),source:'手动录入',updatedAt:new Date().toLocaleString('zh-CN',{hour12:false})};state.decisions={};log(roleLabels[state.role],`手动更新环境参数：全天${state.weather.temp}℃、午间${state.weather.heatTemp}℃、阵风${state.weather.windGust}m/s、降雨${state.weather.precipitation}mm`,'待确认');closeModal();render();};}
 
 let aiPlanDraft=null;
+function staticDemoPlan(text=''){
+  const find=(name)=>state.workers.find(w=>w.name===name);
+  const byName=(name)=>find(name)?.id;
+  const tasks=[
+    {name:'外墙砌体样板作业',area:'6F东立面',start:'08:00',end:'12:00',environment:'高处临边',intensity:'高',requiredCert:'砌筑工高级',requiredCertCode:'MASON-L3',people:1,experienceGoal:'样板质量与灰缝控制交底'},
+    {name:'混凝土养护',area:'基坑南侧',start:'11:00',end:'15:00',environment:'户外高温',intensity:'中',requiredCert:'混凝土工',requiredCertCode:'CONCRETE-L2',people:1,experienceGoal:'高温条件下养护工序交底'},
+    {name:'袋装水泥搬运与清点',area:'1#材料库',start:'09:00',end:'11:30',environment:'室内搬运',intensity:'高',requiredCert:'材料员辅助',requiredCertCode:'MATERIAL-AUX',people:1,experienceGoal:'材料清点与台账核对'},
+    {name:'墙面抹灰样板',area:'2F样板间',start:'08:00',end:'11:00',environment:'室内',intensity:'低',requiredCert:'抹灰工中级',requiredCertCode:'PLASTER-L2',people:1,experienceGoal:'空鼓排查与收口工艺带教'}
+  ];
+  return {summary:'静态演示模式：已根据施工通知生成任务草稿，后续由规则引擎和人工确认共同完成派工。',tasks,assignments:[
+    {taskIndex:0,workerId:byName('张建华'),role:'执行'},
+    {taskIndex:1,workerId:byName('王德胜'),role:'执行'},
+    {taskIndex:2,workerId:byName('刘国平'),role:'执行'},
+    {taskIndex:3,workerId:byName('陈海明'),role:'执行'}
+  ].filter(x=>x.workerId),ambiguities:[]};
+}
+function isStaticDemo(){return location.protocol==='file:' || /github\.io$|pages\.dev$/.test(location.hostname);}
 async function analyzeDailyPlan(){
   const text=(state.assistantInput||'').trim();
   if(!text)return notify('请先输入今天的施工安排，或点击“查看示例建议”');
   const button=$('#assistantAnalyzeButton');if(button){button.disabled=true;button.innerHTML=`${icon('loader-circle')}正在整理…`;icons();}
   try{
+    if(isStaticDemo()){state.assistantDraft=staticDemoPlan(text);state.assistantMode='draft';save();render();if(button){button.disabled=false;button.innerHTML=`${icon('sparkles')}整理为任务草稿`;icons();}return;}
     const response=await fetch('/api/ai/parse-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,workers:state.workers})}),payload=await response.json();
     if(!response.ok)throw new Error(payload.error||'计划解析失败');
     state.assistantDraft=payload.plan;state.assistantMode='draft';save();render();
@@ -641,6 +659,7 @@ function aiPlanModal(){
     if(!text)return notify('请先粘贴施工计划内容');
     const button=$('#aiParseSubmit');button.disabled=true;button.innerHTML=`${icon('loader-circle')}正在解析…`;icons();
     try{
+      if(isStaticDemo()){aiPlanDraft=staticDemoPlan(text);renderAiPlanPreview(aiPlanDraft);return;}
       const response=await fetch('/api/ai/parse-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,workers:state.workers})}),payload=await response.json();
       if(!response.ok)throw new Error(payload.error||'AI 解析失败');
       aiPlanDraft=payload.plan;renderAiPlanPreview(payload.plan);
