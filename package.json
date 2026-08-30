@@ -1,0 +1,13 @@
+{
+  "name": "anling-gongyou-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "安龄工友建筑班前安全适配与经验传承智能体 Demo",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

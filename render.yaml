@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: anling-gongyou-demo
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: "npm start"
+    autoDeploy: true
+    envVars:
+      - key: AI_PROVIDER
+        value: deepseek
+      - key: AI_API_URL
+        value: https://api.deepseek.com/chat/completions
+      - key: AI_MODEL
+        value: deepseek-chat
+      - key: AI_API_KEY
+        sync: false

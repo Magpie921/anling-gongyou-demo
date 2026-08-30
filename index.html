@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="安龄工友 - 建筑业大龄工友安全适配与经验传承智能体原型" />
+  <title>安龄工友｜班前安全适配工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script async src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="xlsx.full.min.js?v=20260829g"></script>
+  <link rel="stylesheet" href="style.css?v=20260829l" />
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalContent"></div>
+    </section>
+  </div>
+  <input id="fileInput" type="file" accept=".xlsx,.xls,.csv,.json,application/json,text/csv" hidden />
+  <script src="app.js?v=20260829l"></script>
+</body>
+</html>
